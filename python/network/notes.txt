@@ -1,0 +1,3 @@
+server ip should take the laptop ip
+so does the client
+so laptop ip is important and thus should be static
