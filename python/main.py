@@ -1,89 +1,75 @@
-import threading 
+import threading
+import shutil
 from network.server import TCPServer
-#from visual.visual import Visual
 from process.model import Proc
 import csv
 import os
 from time import sleep
 from pandas import read_csv
 import pandas as pd
-from scipy.datasets import electrocardiogram
 import numpy as np
 
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 
-fig = plt.figure()
-ax1 = fig.add_subplot(1,1,1)
-
-#HOST = "192.168.154.27"
 HOST = "127.0.0.1"
 PORT = 8888
-count = 0
-filecount=0
+
+DATA_CSV = 'data.csv'
+LIVE_CSV = 'ecgLive.csv'
+ARCHIVE_DIR = 'archive'
+RESULT_CSV = 'modelResult.csv'
+CSV_HEADER = ["temp", "humidty", "ecg"]
 
 
-"""
-def animate(i,ecg):
-    xs= np.arange(ecg.size)/125
-    ys=ecg
-
-    ax1.clear()
-    ax1.plot(xs,ys)
-"""
-
+def init_csv(path):
+    """Create a fresh CSV file with the standard header."""
+    with open(path, 'w', newline='\n') as f:
+        csv.writer(f).writerow(CSV_HEADER)
 
 
 if __name__ == '__main__':
-    #init thread classes
-    tcp=TCPServer(HOST ,PORT)
-    proc=Proc()
-    #init thread and start em
-    #tcpThread = threading.Thread(target = tcp.run, args=())
-    tcpThread = tcp
-    tcpThread.start()
+    # Ensure archive directory exists
+    os.makedirs(ARCHIVE_DIR, exist_ok=True)
 
+    tcp = TCPServer(HOST, PORT)
+    proc = Proc()
 
-    #run main loop
+    tcp.start()
+
+    count = 0
+    filecount = 0
+
     try:
-        while(True):
+        while True:
             try:
-                #visual.run()
-                data=read_csv('data.csv',sep=r'\s*,\s*', engine='python')
-                print(data['ecg'].to_numpy())
-                result=proc.run((data['ecg'].to_numpy()))
-                with open('modelResult.csv','w') as filee:
-                    csv.writer(filee).writerow(result)
+                data = read_csv(DATA_CSV, sep=r'\s*,\s*', engine='python')
+                ecg_data = data['ecg'].to_numpy()
+                print(ecg_data)
 
-                if(tcp.done==0):
-                    count+=1
-                    #print("finished sending")
-                    data=read_csv('data.csv')
-                    tcp.done=1
-                    if( count >=5):
-                        #print("reached here")
-                        #mv data somewhere else
-                        os.popen('cp data.csv ecgLive.csv')
-                        os.rename("data.csv",f"archive/{filecount}.csv")
+                result = proc.run(ecg_data)
+                if result is not None:
+                    with open(RESULT_CSV, 'w', newline='') as f:
+                        csv.writer(f).writerow(result)
 
-                        count=0
-                        data=open("data.csv","x")
-                        (csv.writer(data)).writerow(["temp", "humidty", "ecg"])#index names
-                        data.close()
+                if tcp.done == 0:
+                    count += 1
+                    tcp.done = 1
+                    if count >= 5:
+                        shutil.copy2(DATA_CSV, LIVE_CSV)
+                        os.rename(DATA_CSV, os.path.join(ARCHIVE_DIR, f"{filecount}.csv"))
+                        filecount += 1
+                        count = 0
+                        init_csv(DATA_CSV)
+
                 sleep(0.5)
 
-            except (pd.errors.ParserError ,FileNotFoundError):
-                if os.path.exists('data.csv'):
-                    os.remove('data.csv')
-                data=open("data.csv","x")
-                (csv.writer(data)).writerow(["temp", "humidty", "ecg"])#index names
-                data.close()
-
+            except (pd.errors.ParserError, FileNotFoundError, KeyError) as e:
+                print(f"Data read error: {e}")
+                if os.path.exists(DATA_CSV):
+                    os.remove(DATA_CSV)
+                init_csv(DATA_CSV)
+                sleep(0.5)
 
     except KeyboardInterrupt:
-        print("main killed by you")
+        print("Main interrupted, shutting down...")
         tcp.kill()
-        print(tcp.running)
-        #tcpThread.join()
-
-        #threading.join()
+        print(f"Server running: {tcp.running}")
