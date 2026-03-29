@@ -1,8 +1,6 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-#import tensorflow as tf
 from tensorflow.keras.models import load_model
-from scipy.datasets import electrocardiogram
 from scipy import signal
 import numpy as np
 from sklearn import preprocessing
@@ -12,45 +10,57 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
+MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'best_model.h5')
+
+
 class Proc:
-    def __init__(self):
-        self.ecg = 1#electrocardiogram()
-        self.result=None
+    def __init__(self, model_path=MODEL_PATH):
+        """Load the CNN model once at initialization."""
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"Model file not found: {model_path}")
+        self.model = load_model(model_path)
+        self.result = None
 
-    def run(self,ecg):
-            #try: 
-                ecg1=self.ecg=ecg.copy()
-                savedModel=load_model('best_model.h5')
-                #print("model:")
-                #print(self.ecg)
+    def run(self, ecg):
+        """Run CNN inference on an ECG signal array.
 
-        #while True:
-            #try:
-                #ecg1 = self.ecg #signal.resample(self.ecg, int(len(self.ecg)*(360/125)))
-                if(len(ecg1)>=186):
-                    ecg1= ecg1[:186*(len(ecg1)//186)]
-                else:
-                    ecg1= np.resize(ecg1, 186)
-                ecg1 = preprocessing.normalize([ecg1])
-                ecg1 = ecg1.reshape(-1,186,1)
-                #print(ecg1)
+        The signal is segmented into 186-sample windows, normalized,
+        and classified using the pre-loaded Keras model.
 
-                #savedModel=tf.keras.models.load_model('best_model.h5')
-                savedModel=load_model('best_model.h5')
-                #savedModel.summary()
-                self.result = np.mean((savedModel.predict(ecg1)),axis=0)
-                print(self.result)
-                sleep(0.5)
-            #except (TypeError,ValueError): 
-                sleep(0.1)
-                return self.result
+        Args:
+            ecg: numpy array of ECG samples.
+
+        Returns:
+            Averaged prediction probabilities across all windows,
+            or None if inference fails.
+        """
+        try:
+            ecg1 = ecg.copy()
+
+            if len(ecg1) >= 186:
+                ecg1 = ecg1[:186 * (len(ecg1) // 186)]
+            else:
+                ecg1 = np.resize(ecg1, 186)
+
+            ecg1 = preprocessing.normalize([ecg1])
+            ecg1 = ecg1.reshape(-1, 186, 1)
+
+            self.result = np.mean(self.model.predict(ecg1), axis=0)
+            return self.result
+
+        except (TypeError, ValueError) as e:
+            print(f"Inference error: {e}")
+            return None
+
 
 if __name__ == '__main__':
-    proc=Proc()
+    proc = Proc()
     try:
-        #while True:
-        data=pandas.read_csv('data.csv',sep=r'\s*,\s*', engine='python')
-        proc.run(data['ecg'].to_numpy())
-
+        data = pandas.read_csv(
+            os.path.join(os.path.dirname(__file__), '..', 'data.csv'),
+            sep=r'\s*,\s*', engine='python'
+        )
+        result = proc.run(data['ecg'].to_numpy())
+        print(result)
     except KeyboardInterrupt:
         print("Proc interrupted, closing...")
