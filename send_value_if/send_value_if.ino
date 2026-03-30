@@ -4,8 +4,8 @@
 #include <BluetoothSerial.h>
 #include <esp_bt.h>
 
-const char* ssid = "Nissou";
-const char* password = "Nissou2004";
+const char* ssid = "YOUR_SSID";
+const char* password = "YOUR_PASSWORD";
 
 const char* serverIP = "192.168.154.27"; // Change to your server IP address
 const uint16_t serverPort = 8888; // Change to your server port

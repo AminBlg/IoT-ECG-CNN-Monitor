@@ -5,8 +5,8 @@
 #define DHTPIN 5          // Pin where the DHT22 is connected
 #define DHTTYPE DHT11     // DHT22 sensor type
 
-const char* ssid = "FALCON";           // Your WiFi SSID
-const char* password = "falcon00";   // Your WiFi password
+const char* ssid = "YOUR_SSID";           // Your WiFi SSID
+const char* password = "YOUR_PASSWORD";   // Your WiFi password
 
 DHT dht(DHTPIN, DHTTYPE);   // Initialize DHT sensor
 

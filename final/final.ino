@@ -12,8 +12,8 @@
 #define DEVICE_LABEL "esp32" // Assig the device label
 
 
-const char* ssid = "Nissou";           // Name of the Wifi 
-const char* password = "Nissou2004";   // pswd of the Wifi 
+const char* ssid = "YOUR_SSID";           // Name of the Wifi 
+const char* password = "YOUR_PASSWORD";   // pswd of the Wifi 
 
 const char* serverIP = "192.168.154.27"; //  My server IP address
 const uint16_t serverPort = 8888;        //  My  server port
