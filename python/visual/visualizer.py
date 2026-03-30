@@ -18,14 +18,14 @@ def animate(i):
         #ecg=(preprocessing.normalize((data['ecg'].to_numpy()).reshape(1, -1)))*10
         #ecg=(ecg.apply(lambda x: (x-x.mean())/ x.std())).to_numpy()
         temp=(data['temp'].to_numpy())
-        humidty=(data['humidty'].to_numpy())
+        humidity=(data['humidity'].to_numpy())
         xs= np.arange(ecg.size)/125
         ys=ecg
 
         ax1.clear()
         ax1.plot(xs,ys, label='ecg')
         ax1.plot(xs,temp, label='temp')
-        ax1.plot(xs,humidty, label='humidty')
+        ax1.plot(xs,humidity, label='humidity')
         ax1.legend()
 
     except pd.errors.ParserError:
@@ -33,7 +33,7 @@ def animate(i):
     """
         os.remove('ecgLive.csv')
         data=open("ecgLive.csv","x")
-        (csv.writer(data)).writerow(["temp", "humidty", "ecg"])#index names
+        (csv.writer(data)).writerow(["temp", "humidity", "ecg"])#index names
         data.close()
     """
 
@@ -47,7 +47,7 @@ while True:
     """
         os.remove('ecgLive.csv')
         data=open("ecgLive.csv","x")
-        (csv.writer(data)).writerow(["temp", "humidty", "ecg"])#index names
+        (csv.writer(data)).writerow(["temp", "humidity", "ecg"])#index names
         data.close()
     """
 #print("how to kill a mockingbird")

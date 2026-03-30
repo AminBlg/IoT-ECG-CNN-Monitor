@@ -12,7 +12,7 @@ DEFAULT_PORT = 8888
 
 DATA_CSV = 'data.csv'
 LIVE_CSV = 'ecgLive.csv'
-CSV_HEADER = ["temp", "humidty", "ecg"]
+CSV_HEADER = ["temp", "humidity", "ecg"]
 
 
 class TCPServer(threading.Thread):

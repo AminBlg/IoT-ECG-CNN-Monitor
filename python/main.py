@@ -17,7 +17,7 @@ DATA_CSV = 'data.csv'
 LIVE_CSV = 'ecgLive.csv'
 ARCHIVE_DIR = 'archive'
 RESULT_CSV = 'modelResult.csv'
-CSV_HEADER = ["temp", "humidty", "ecg"]
+CSV_HEADER = ["temp", "humidity", "ecg"]
 
 
 def init_csv(path):
